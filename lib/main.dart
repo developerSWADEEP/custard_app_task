@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -163,7 +165,8 @@ class MyHomePageState extends State<MyHomePage> {
   void _saveEventData(String name, String date, String location, File? image) async {
     try {
       if (image != null) {
-        String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        String fileName = DateTime.now().millisecondsSinceEpoch.toString(); // Generate unique file name
+        Reference ref = FirebaseStorage.instance.ref().child('images/$fileName.jpg');
         await ref.putFile(image);
         String imageUrl = await ref.getDownloadURL();
         _database.push().set({
@@ -215,11 +218,25 @@ class MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void _bookTicket(Event event) {
+    // Implement booking ticket functionality here
+    Fluttertoast.showToast(
+      msg: 'Ticket booked ',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.grey,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+    print('Ticket booked for ${event.name}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.black,
         title: Text(
           _greetingMessage(),
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, color: Colors.white),
@@ -235,22 +252,32 @@ class MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Container(
-        color: Colors.white,
+        color: Colors.blueGrey,
         child: ListView.builder(
           itemCount: _events.length,
           itemBuilder: (context, index) {
             final event = _events[index];
-            return EventCard(
-              event: event,
-              onDelete: () => _deleteEventData(event.key),
-              onUpdate: (String newName, String newDate, String newLocation) =>
-                  _updateEventData(event.key, newName, newDate, newLocation),
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailsScreen(event: event, onBookTicket: _bookTicket),
+                  ),
+                );
+              },
+              child: EventCard(
+                event: event,
+                onDelete: () => _deleteEventData(event.key),
+                onUpdate: (String newName, String newDate, String newLocation) =>
+                    _updateEventData(event.key, newName, newDate, newLocation),
+              ),
             );
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.redAccent,
         onPressed: _addEventData,
         child: Text(
           'Add Event',
@@ -290,7 +317,7 @@ class EventCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
-        color: Colors.blueAccent,
+        color: Colors.grey,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -311,7 +338,6 @@ class EventCard extends StatelessWidget {
                       ? NetworkImage(event.imageUrl! as String)
                       : AssetImage('assets/event.jpg') as ImageProvider<Object>,
                 ),
-
               ),
             ),
             Padding(
@@ -464,5 +490,46 @@ class Event {
       date = '';
       location = '';
     }
+  }
+}
+
+class EventDetailsScreen extends StatelessWidget {
+  final Event event;
+  final Function(Event) onBookTicket;
+
+  EventDetailsScreen({required this.event, required this.onBookTicket});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Event Details'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Name: ${event.name}',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Date: ${event.date}',
+              style: TextStyle(fontSize: 20),
+            ),
+            Text(
+              'Location: ${event.location}',
+              style: TextStyle(fontSize: 20),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onBookTicket(event);
+              },
+              child: Text('Book Ticket'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
