@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1062426757683",
+    "project_id": "my-app-2b78c",
+    "storage_bucket": "my-app-2b78c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1062426757683:android:7b951db5f27b01f1bef146",
+        "android_client_info": {
+          "package_name": "com.example.custard_app_task"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMHTSiMSZK1PA2G9VNDTcMiNsCKyKX_4s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
